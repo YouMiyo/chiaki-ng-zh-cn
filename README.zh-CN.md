@@ -55,7 +55,7 @@ GitHub Actions 的 **Build Simplified Chinese Windows** 可手动触发并下载
 
 ## 同步上游新版
 
-`main` 保存汉化；`upstream-stable` 保存当前基线。仓库独立维护，保留上游历史，未使用 GitHub fork 关系。
+`main` 保存汉化；`upstream-stable` 保存当前基线。本仓库是 `chiaki-ng/chiaki-ng` 的公开 GitHub fork，保留上游历史，汉化改动在本仓库中维护。
 
 工作区干净后，在 PowerShell 执行（版本号替换为已核实的稳定版）：
 
