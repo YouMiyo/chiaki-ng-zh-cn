@@ -6,7 +6,7 @@
 
 ## 使用
 
-从本私密仓库的 Releases 下载 Windows x64 压缩包，完整解压后运行 `chiaki.exe`。不要只复制 exe，旁边的 DLL、QML 与 translations 目录也需要保留。
+从本仓库的 Releases 下载 Windows x64 压缩包，完整解压后运行 `chiaki.exe`。不要只复制 exe，旁边的 DLL、QML 与 translations 目录也需要保留。
 
 默认简体中文；英文界面可使用 `chiaki.exe --language en`，中文使用 `--language zh_CN`。这些选项应放在 `stream` 等子命令之前。
 
@@ -55,7 +55,7 @@ GitHub Actions 的 **Build Simplified Chinese Windows** 可手动触发并下载
 
 ## 同步上游新版
 
-`main` 保存汉化；`upstream-stable` 保存当前基线。仓库是独立私密仓库，而非公开项目的 GitHub fork。
+`main` 保存汉化；`upstream-stable` 保存当前基线。仓库独立维护，保留上游历史，未使用 GitHub fork 关系。
 
 工作区干净后，在 PowerShell 执行（版本号替换为已核实的稳定版）：
 
