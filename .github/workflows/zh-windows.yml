@@ -1,0 +1,48 @@
+name: Build Simplified Chinese Windows
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize desktop submodules
+        shell: pwsh
+        run: git submodule update --init --depth 1 third-party/nanopb third-party/jerasure third-party/gf-complete third-party/curl third-party/cpp-steam-tools
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: git zip
+          pacboy: >-
+            cc:p cmake:p ninja:p pkgconf:p python:p python-protobuf:p
+            qt6-base:p qt6-declarative:p qt6-svg:p qt6-tools:p qt6-translations:p
+            ffmpeg:p libplacebo:p curl:p openssl:p opus:p speexdsp:p
+            json-c:p miniupnpc:p protobuf:p libevent:p
+      - name: Build pinned controller dependencies
+        env:
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
+        run: |
+          INSTALL_PREFIX=/ucrt64 scripts/build-sdl2-compat.sh .
+          INSTALL_PREFIX=/ucrt64 scripts/build-hidapi.sh .
+          cp /ucrt64/lib/pkgconfig/sdl2-compat.pc /ucrt64/lib/pkgconfig/sdl2.pc
+      - name: Validate, build and deploy
+        run: scripts/build-zh-windows.sh
+      - name: Package
+        run: |
+          zip -qr chiaki-ng-zh-CN-windows-x64.zip dist-zh
+          sha256sum chiaki-ng-zh-CN-windows-x64.zip > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: chiaki-ng-zh-CN-windows-x64
+          path: |
+            chiaki-ng-zh-CN-windows-x64.zip
+            SHA256SUMS.txt
+          retention-days: 14
+          if-no-files-found: error

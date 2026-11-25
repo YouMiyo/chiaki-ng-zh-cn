@@ -20,6 +20,8 @@ int main(int argc, char *argv[]) { return real_main(argc, argv); }
 #include <discoverymanager.h>
 #include <qmlmainwindow.h>
 #include <QApplication>
+#include <QTranslator>
+#include <QLibraryInfo>
 #include <QtTypes>
 
 #ifdef CHIAKI_ENABLE_CLI
@@ -75,6 +77,9 @@ int real_main(int argc, char *argv[])
 
 	QGuiApplication::setOrganizationName("Chiaki");
 	QGuiApplication::setApplicationName("Chiaki");
+	// UI validation must never read or overwrite a player's PSN credentials.
+	if(qEnvironmentVariableIsSet("CHIAKI_TRANSLATION_PREVIEW"))
+		QGuiApplication::setApplicationName("Chiaki-TranslationPreview");
 	QGuiApplication::setApplicationVersion(CHIAKI_VERSION);
 	QGuiApplication::setApplicationDisplayName("chiaki-ng");
 #if defined(Q_OS_MACOS)
@@ -152,6 +157,8 @@ int real_main(int argc, char *argv[])
 	QCommandLineParser parser;
 	parser.setOptionsAfterPositionalArgumentsMode(QCommandLineParser::ParseAsPositionalArguments);
 	parser.addHelpOption();
+	QCommandLineOption language_option("language", "UI language: zh_CN or en (default: zh_CN).", "language", "zh_CN");
+	parser.addOption(language_option);
 	
 	QStringList cmds;
 	cmds.append("stream");
@@ -196,6 +203,21 @@ int real_main(int argc, char *argv[])
 	parser.addOption(opengl_option);
 
 	parser.process(app);
+	// Translators outlive every QML window, including profile changes.
+	QTranslator qt_translator;
+	QTranslator app_translator;
+	const QString ui_language = parser.value(language_option);
+	if(ui_language != "zh_CN" && ui_language != "en")
+		parser.showHelp(1);
+	if(ui_language == "zh_CN")
+	{
+		if(qt_translator.load("qtbase_zh_CN", QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
+			app.installTranslator(&qt_translator);
+		if(app_translator.load(":/i18n/chiaki_zh_CN.qm"))
+			app.installTranslator(&app_translator);
+		else
+			qWarning("Simplified Chinese translation resource could not be loaded.");
+	}
 	QStringList args = parser.positionalArguments();
 
 	Settings settings(parser.isSet(profile_option) ? parser.value(profile_option) : QString());

@@ -8,6 +8,7 @@ if(APPLE)
 endif()
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Concurrent Svg Qml Quick Widgets)
+find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
 if(Qt6_VERSION VERSION_GREATER_EQUAL "6.10.0")
 	find_package(Qt6 REQUIRED COMPONENTS GuiPrivate)
 endif()
@@ -93,6 +94,13 @@ add_executable(chiaki WIN32
 		${SOURCE_FILES}
 )
 target_include_directories(chiaki PRIVATE include)
+
+# Keep translations separate from upstream UI strings so lupdate can track changes.
+qt_add_translations(chiaki
+	TS_FILES translations/chiaki_zh_CN.ts
+	RESOURCE_PREFIX "/i18n"
+	LUPDATE_OPTIONS -no-obsolete -locations relative
+)
 
 add_library(placebo-libav-impl src/libav_impl.c)
 target_link_libraries(placebo-libav-impl PkgConfig::LIBPLACEBO FFMPEG::avcodec FFMPEG::avutil FFMPEG::avformat)

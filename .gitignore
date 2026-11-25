@@ -35,6 +35,17 @@ compile_commands.json
 .cache/
 .gdb_history
 chiaki.conf
+# Local localization build outputs; credentials and session logs never belong here.
+/SDL3-*
+/hidapi/
+/dist-zh/
+/artifacts/
+*.qm
+*.log
+/chiaki-ng-*.zip
+/.env*
+/*Default.ini
+/*transfer*.ini
 /appimage
 .cache/
 *.vscode

@@ -1,0 +1,19 @@
+name: Check Simplified Chinese translations
+on:
+  push:
+    branches: [main]
+    paths: ['gui/translations/**', 'scripts/check-zh-translations.py', '.github/workflows/zh-check.yml']
+  pull_request:
+    paths: ['gui/translations/**', 'scripts/check-zh-translations.py', '.github/workflows/zh-check.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - run: python scripts/check-zh-translations.py
