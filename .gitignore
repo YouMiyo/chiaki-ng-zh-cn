@@ -39,6 +39,9 @@ chiaki.conf
 /SDL3-*
 /hidapi/
 /dist-zh/
+/dist-aligned/
+/official-runtime.zip
+__pycache__/
 /artifacts/
 *.qm
 *.log

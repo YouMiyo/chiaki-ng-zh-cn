@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
+if [[ "${ALLOW_LEGACY_SDK:-0}" != "1" ]]; then
+    echo 'This legacy developer build may bundle different runtime libraries. Use zh-windows.yml for an official-runtime-aligned package.' >&2
+    echo 'For intentional SDK experiments only, set ALLOW_LEGACY_SDK=1.' >&2
+    exit 1
+fi
 cd "$(dirname "$0")/.."
 prefix="${MINGW_PREFIX:-/ucrt64}"
 export CMAKE_BUILD_PARALLEL_LEVEL="${CMAKE_BUILD_PARALLEL_LEVEL:-2}"

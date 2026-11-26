@@ -6,7 +6,7 @@ permissions:
 jobs:
   windows:
     runs-on: windows-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     defaults:
       run:
         shell: msys2 {0}
@@ -17,32 +17,57 @@ jobs:
         run: git submodule update --init --depth 1 third-party/nanopb third-party/jerasure third-party/gf-complete third-party/curl third-party/cpp-steam-tools
       - uses: msys2/setup-msys2@v2
         with:
-          msystem: UCRT64
+          msystem: MINGW64
           update: true
-          install: git zip
+          install: git diffutils make unzip zip
           pacboy: >-
-            cc:p cmake:p ninja:p pkgconf:p python:p python-protobuf:p
+            cc:p cmake:p ninja:p pkgconf:p python:p python-pip:p
             qt6-base:p qt6-declarative:p qt6-svg:p qt6-tools:p qt6-translations:p
-            ffmpeg:p libplacebo:p curl:p openssl:p opus:p speexdsp:p
-            json-c:p miniupnpc:p protobuf:p libevent:p
+            curl:p openssl:p opus:p speexdsp:p json-c:p miniupnpc:p protobuf:p libevent:p
+            ca-certificates:p fast_float:p fftw:p lcms2:p libdovi:p meson:p nasm:p
+            python-psutil:p python-glad:p python-jinja:p shaderc:p spirv-cross:p
+            vulkan:p vulkan-headers:p compiler-rt:p
+      - name: Prepare official-version build dependencies
+        run: |
+          python -m pip install protobuf pefile
+          LIBPLACEBO_VERSION=275f7dea27924cdd34ab2e6c20e448b6bc4fab65 scripts/build-libplacebo-windows.sh .
+          curl --fail --location --retry 3 -o ffmpeg-sdk.zip https://github.com/streetpea/FFmpeg-Builds/releases/download/latest/ffmpeg-n9.0-latest-win64-gpl-shared-9.0.zip
+          echo 'ebf76dbec4e697bd71390c9e448487580020d3854422ed13544992b245b5c249  ffmpeg-sdk.zip' | sha256sum -c -
+          unzip -q ffmpeg-sdk.zip
+          cp -a ffmpeg-n9.0-latest-win64-gpl-shared-9.0/bin/. /mingw64/bin
+          cp -a ffmpeg-n9.0-latest-win64-gpl-shared-9.0/include/. /mingw64/include
+          cp -a ffmpeg-n9.0-latest-win64-gpl-shared-9.0/lib/. /mingw64/lib
+          curl --fail --location --retry 3 -o official-runtime.zip https://github.com/chiaki-ng/chiaki-ng/releases/download/v1.10.1/chiaki-ng-win_x64-MSYS2-portable-1.10.1.zip
+          echo '6ca3f5e6780608104d79345ab7755cfa77fefc33a41ae10651a874c43f54ea57  official-runtime.zip' | sha256sum -c -
       - name: Build pinned controller dependencies
         env:
           CMAKE_BUILD_PARALLEL_LEVEL: 2
         run: |
-          INSTALL_PREFIX=/ucrt64 scripts/build-sdl2-compat.sh .
-          INSTALL_PREFIX=/ucrt64 scripts/build-hidapi.sh .
-          cp /ucrt64/lib/pkgconfig/sdl2-compat.pc /ucrt64/lib/pkgconfig/sdl2.pc
-      - name: Validate, build and deploy
-        run: scripts/build-zh-windows.sh
+          INSTALL_PREFIX=/mingw64 scripts/build-sdl2-compat.sh .
+          INSTALL_PREFIX=/mingw64 scripts/build-hidapi.sh .
+          cp /mingw64/lib/pkgconfig/sdl2-compat.pc /mingw64/lib/pkgconfig/sdl2.pc
+      - name: Build against matching core library versions
+        run: |
+          test "$(pkg-config --modversion Qt6Core)" = '6.12.0'
+          test "$(pkg-config --modversion libplacebo)" = '7.387.0'
+          test "$(pkg-config --modversion libavcodec)" = '63.1.102'
+          python scripts/check-zh-translations.py
+          cmake -S . -B build-aligned -G Ninja -DCMAKE_BUILD_TYPE=Release -DCHIAKI_ENABLE_CLI=OFF -DCHIAKI_ENABLE_TESTS=OFF -DCHIAKI_ENABLE_STEAMDECK_NATIVE=OFF
+          cmake --build build-aligned --target chiaki --parallel 2
+          pacman -Q > build-aligned/sdk-packages.txt
+      - name: Reuse and verify original official runtime files
+        run: python scripts/package-official-runtime.py
       - name: Package
         run: |
-          zip -qr chiaki-ng-zh-CN-windows-x64.zip dist-zh
-          sha256sum chiaki-ng-zh-CN-windows-x64.zip > SHA256SUMS.txt
+          cd dist-aligned
+          zip -qr ../chiaki-ng-1.10.1-zh.2-windows-x64.zip chiaki-ng-Win
+          cd ..
+          sha256sum chiaki-ng-1.10.1-zh.2-windows-x64.zip > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: chiaki-ng-zh-CN-windows-x64
+          name: chiaki-ng-1.10.1-zh.2-windows-x64
           path: |
-            chiaki-ng-zh-CN-windows-x64.zip
+            chiaki-ng-1.10.1-zh.2-windows-x64.zip
             SHA256SUMS.txt
           retention-days: 14
           if-no-files-found: error

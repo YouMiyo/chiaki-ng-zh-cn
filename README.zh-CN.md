@@ -34,24 +34,19 @@
 
 未修改串流、网络、加密、配对或手柄协议实现。
 
-## Windows 本地构建
+## Windows 构建与运行库一致性
 
-使用 MSYS2 UCRT64，以下命令在 UCRT64 shell 中执行：
+以 [.github/workflows/zh-windows.yml](.github/workflows/zh-windows.yml) 为构建入口，可在 GitHub Actions 手动运行 **Build Simplified Chinese Windows**。本地复现时在独立的 MSYS2 MINGW64 环境按该工作流顺序执行，避免覆盖其他项目的 SDK。
 
-```sh
-pacman -S --needed git zip \
-  mingw-w64-ucrt-x86_64-{gcc,cmake,ninja,pkgconf,python,python-protobuf,qt6-base,qt6-declarative,qt6-svg,qt6-tools,qt6-translations,ffmpeg,libplacebo,curl,openssl,opus,speexdsp,json-c,miniupnpc,protobuf,libevent}
-git submodule update --init --depth 1 third-party/nanopb third-party/jerasure third-party/gf-complete third-party/curl third-party/cpp-steam-tools
-export CMAKE_BUILD_PARALLEL_LEVEL=2
-INSTALL_PREFIX=/ucrt64 scripts/build-sdl2-compat.sh .
-INSTALL_PREFIX=/ucrt64 scripts/build-hidapi.sh .
-cp /ucrt64/lib/pkgconfig/sdl2-compat.pc /ucrt64/lib/pkgconfig/sdl2.pc
-scripts/build-zh-windows.sh
-```
+工作流沿用官方 v1.10.1 的 MINGW64 构建方式，并校验 Qt 6.12.0、FFmpeg avcodec 63.1.102（9.0.2 系列）、libplacebo 7.387.0。FFmpeg SDK ZIP 与官方运行包使用固定 SHA256；libplacebo 使用固定提交。若上游滚动下载内容改变，构建会失败，需要人工审核更新。
 
-输出目录为 `dist-zh/`。本次使用 Qt 6.11.1、FFmpeg 8.1.1、libplacebo 7.360.1，SDL3/sdl2-compat 由上游脚本固定版本构建。与上游官方发布包的依赖组合可能不同，须实测后再替换日常版本。每次构建写入 `BUILD-INFO.txt`，MSYS2 是滚动发行，未来依赖版本可能变化。
+打包时直接解压官方 v1.10.1 Windows 便携包，只替换汉化 `chiaki.exe`，另加翻译、源码获取说明及许可告知。**其余原有文件必须逐个 SHA256 一致**，不把 SDK 里的另一套 DLL 混进发行包。新 exe 导入的第三方 DLL 符号也必须在官方运行库中存在，否则打包失败。
 
-GitHub Actions 的 **Build Simplified Chinese Windows** 可手动触发并下载构建产物，不会自动安装到电脑。
+产物是 `chiaki-ng-1.10.1-zh.2-windows-x64.zip`，含 `RUNTIME-VERIFICATION.json` 和 `SOURCE-INFO.txt`。SDK 的具体包版本另记于 `sdk-packages.txt`；构建工具链未声称与官方历史构建逐字节一致。运行库一致也不等于已经通过游戏串流稳定性验收。
+
+历史 `zh.1` 使用 UCRT64、Qt 6.11.1、FFmpeg 8.1.1、libplacebo 7.360.1。正在排查其丢帧后画面冻结问题，不能排除依赖差异带来的回归。旧 `scripts/build-zh-windows.sh` 仅保留供明确设置 `ALLOW_LEGACY_SDK=1` 的开发实验，不作为当前发行流程。
+
+构建产物不会自动替换本机正在使用的客户端；先在独立目录测试，再决定日常使用版本。
 
 ## 同步上游新版
 
