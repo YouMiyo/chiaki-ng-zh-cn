@@ -40,9 +40,13 @@
 
 工作流沿用官方 v1.10.1 的 MINGW64 构建方式，并校验 Qt 6.12.0、FFmpeg avcodec 63.1.102（9.0.2 系列）、libplacebo 7.387.0。FFmpeg SDK ZIP 与官方运行包使用固定 SHA256；libplacebo 使用固定提交。若上游滚动下载内容改变，构建会失败，需要人工审核更新。
 
+Qt 基础 SDK 固定 MSYS2 的 `6.12.0-1` 包，编译前核对 37 个 Qt DLL 与官方包逐字节一致。OpenSSL 3.6.5 和 zlib 1.3.2 使用独立 SDK 路径，避免滚动仓库升级到 OpenSSL 4、zlib 1.4 后链接到不同的 DLL 名称。以上历史 SDK 下载也固定 SHA256。PE 导出检查须完整解析 Qt 的大型导出表，不能采用 pefile 默认的 8192 项上限。
+
 打包时直接解压官方 v1.10.1 Windows 便携包，只替换汉化 `chiaki.exe`，另加翻译、源码获取说明及许可告知。**其余原有文件必须逐个 SHA256 一致**，不把 SDK 里的另一套 DLL 混进发行包。新 exe 导入的第三方 DLL 符号也必须在官方运行库中存在，否则打包失败。
 
 产物是 `chiaki-ng-1.10.1-zh.2-windows-x64.zip`，含 `RUNTIME-VERIFICATION.json` 和 `SOURCE-INFO.txt`。SDK 的具体包版本另记于 `sdk-packages.txt`；构建工具链未声称与官方历史构建逐字节一致。运行库一致也不等于已经通过游戏串流稳定性验收。
+
+`zh.2` 对应源码 `2f9c237c944a81958c344c76ebc76a2e367282ff` 的[云端构建](https://github.com/YouMiyo/chiaki-ng-zh-cn/actions/runs/45736330061)已通过：1496 个官方原有文件一致、27 个非系统 DLL 的导入符号检查通过；本机命令行启动退出码为 0。实际串流与中文界面仍待验收，保持预览状态。
 
 历史 `zh.1` 使用 UCRT64、Qt 6.11.1、FFmpeg 8.1.1、libplacebo 7.360.1。正在排查其丢帧后画面冻结问题，不能排除依赖差异带来的回归。旧 `scripts/build-zh-windows.sh` 仅保留供明确设置 `ALLOW_LEGACY_SDK=1` 的开发实验，不作为当前发行流程。
 
@@ -55,7 +59,7 @@
 工作区干净后，在 PowerShell 执行（版本号替换为已核实的稳定版）：
 
 ```powershell
-./scripts/sync-upstream.ps1 -Tag v1.10.2 -LUpdate C:/msys64/ucrt64/bin/lupdate.exe
+./scripts/sync-upstream.ps1 -Tag v1.10.2 -LUpdate C:/msys64/mingw64/bin/lupdate.exe
 ```
 
 脚本会获取官方标签，在 `sync/v版本号` 分支合并并刷新 `.ts` 文件。若存在代码冲突或未完成译文会停止，保留现场供处理；不强制覆盖，不自动推送。

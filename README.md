@@ -1,11 +1,11 @@
 
 ## Chiaki-ng 简体中文维护版
 
-**[下载 Windows x64 完整程序包](https://github.com/YouMiyo/chiaki-ng-zh-cn/releases/tag/zh-v1.10.1.1)** · **[中文使用与更新说明](README.zh-CN.md)**
+**[下载 Windows x64 完整程序包](https://github.com/YouMiyo/chiaki-ng-zh-cn/releases/tag/zh-v1.10.1.2)** · **[中文使用与更新说明](README.zh-CN.md)**
 
-这是基于官方 v1.10.1 的非官方中文版本。下载发行页中的 `chiaki-ng-1.10.1-zh.1-windows-x64.zip`，完整解压后运行 `chiaki.exe`；GitHub 自动生成的 Source code 是源码，不是可运行程序。
+这是基于官方 v1.10.1 的非官方中文版本。下载发行页中的 `chiaki-ng-1.10.1-zh.2-windows-x64.zip`，完整解压到新目录后运行 `chiaki.exe`；GitHub 自动生成的 Source code 是源码，不是可运行程序。
 
-当前为预览版：编译与翻译检查已通过，中文界面逐页检查和本构建的实际串流验收仍待完成。程序包不包含个人 PSN 或配对配置。
+当前为运行库对齐预览版：官方包除主程序外的 1496 个原有文件逐字节一致，编译、翻译、DLL 导入与本机命令行启动检查通过。中文界面逐页检查和本构建的实际串流验收仍待完成，不能据此宣称解决画面冻结。程序包不包含个人 PSN 或配对配置。
 
 以下保留上游项目介绍；其中的官方发布链接指向原项目。
 
