@@ -41,6 +41,8 @@ chiaki.conf
 /dist-zh/
 /dist-aligned/
 /official-runtime.zip
+/openssl3-sdk/
+/openssl3-sdk.tar.zst
 __pycache__/
 /artifacts/
 *.qm

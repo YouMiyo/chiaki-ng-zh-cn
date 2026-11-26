@@ -39,6 +39,11 @@ jobs:
           cp -a ffmpeg-n9.0-latest-win64-gpl-shared-9.0/lib/. /mingw64/lib
           curl --fail --location --retry 3 -o official-runtime.zip https://github.com/chiaki-ng/chiaki-ng/releases/download/v1.10.1/chiaki-ng-win_x64-MSYS2-portable-1.10.1.zip
           echo '6ca3f5e6780608104d79345ab7755cfa77fefc33a41ae10651a874c43f54ea57  official-runtime.zip' | sha256sum -c -
+          # Keep SDK tools on their own OpenSSL; isolate the app's upstream ABI.
+          curl --fail --location --retry 3 -o openssl3-sdk.tar.zst https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-openssl-3.6.5-1-any.pkg.tar.zst
+          echo '389d1af21e99223d9e2cd32d4c073131b276da85be7636bd8d23571f6938864f  openssl3-sdk.tar.zst' | sha256sum -c -
+          mkdir openssl3-sdk
+          tar -xf openssl3-sdk.tar.zst -C openssl3-sdk
       - name: Build pinned controller dependencies
         env:
           CMAKE_BUILD_PARALLEL_LEVEL: 2
@@ -52,7 +57,7 @@ jobs:
           test "$(pkg-config --modversion libplacebo)" = '7.387.0'
           test "$(pkg-config --modversion libavcodec)" = '63.1.102'
           python scripts/check-zh-translations.py
-          cmake -S . -B build-aligned -G Ninja -DCMAKE_BUILD_TYPE=Release -DCHIAKI_ENABLE_CLI=OFF -DCHIAKI_ENABLE_TESTS=OFF -DCHIAKI_ENABLE_STEAMDECK_NATIVE=OFF
+          cmake -S . -B build-aligned -G Ninja -DCMAKE_BUILD_TYPE=Release -DCHIAKI_ENABLE_CLI=OFF -DCHIAKI_ENABLE_TESTS=OFF -DCHIAKI_ENABLE_STEAMDECK_NATIVE=OFF -DOPENSSL_ROOT_DIR="$PWD/openssl3-sdk/mingw64" -DOPENSSL_INCLUDE_DIR="$PWD/openssl3-sdk/mingw64/include" -DOPENSSL_CRYPTO_LIBRARY="$PWD/openssl3-sdk/mingw64/lib/libcrypto.dll.a" -DOPENSSL_SSL_LIBRARY="$PWD/openssl3-sdk/mingw64/lib/libssl.dll.a"
           cmake --build build-aligned --target chiaki --parallel 2
           curl --fail --location --retry 3 -o build-aligned/qtbase_zh_CN.ts https://raw.githubusercontent.com/qt/qttranslations/v6.12.0/translations/qtbase_zh_CN.ts
           echo 'e63a70eedd900438ec1c63877c525bcda5c8292803bf0e228995de09fb9ddeb7  build-aligned/qtbase_zh_CN.ts' | sha256sum -c -

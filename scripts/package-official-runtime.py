@@ -49,6 +49,7 @@ shutil.copy2(ROOT / 'build-aligned/gui/chiaki.exe', dest / 'chiaki.exe')
 system32 = Path(os.environ['WINDIR']) / 'System32'
 imports = pefile.PE(str(dest / 'chiaki.exe'))
 checked = []
+print('Executable imports:', ', '.join(d.dll.decode('ascii') for d in imports.DIRECTORY_ENTRY_IMPORT))
 for desc in imports.DIRECTORY_ENTRY_IMPORT:
     name = desc.dll.decode('ascii')
     dll = dest / name
@@ -92,6 +93,7 @@ submodules = subprocess.check_output(['git', 'submodule', 'status'], text=True)
     'FFmpeg SDK/build recipes: https://github.com/streetpea/FFmpeg-Builds/tree/867f543\n'
     'libplacebo SDK source: https://github.com/haasn/libplacebo/tree/275f7dea27924cdd34ab2e6c20e448b6bc4fab65\n'
     'Qt Chinese catalog source: https://github.com/qt/qttranslations/tree/v6.12.0\n'
+    'OpenSSL SDK source package: https://repo.msys2.org/mingw/sources/mingw-w64-openssl-3.6.5-1.src.tar.zst\n'
     'Runtime DLLs and QML resources are copied byte-for-byte from upstream.\n'
     'sdk-packages.txt lists BUILD SDK packages, not proof of runtime package provenance.\n'
     'The SDK license copies supplement, but do not replace, applicable upstream runtime notices.\n'
