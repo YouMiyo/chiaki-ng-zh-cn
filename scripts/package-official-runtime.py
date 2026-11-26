@@ -77,7 +77,7 @@ for name in ('COPYING', 'README.zh-CN.md'):
     shutil.copy2(ROOT / name, dest / name)
 shutil.copytree(ROOT / 'LICENSES', dest / 'LICENSES', dirs_exist_ok=True)
 (dest / 'translations').mkdir(exist_ok=True)
-shutil.copy2(PREFIX / 'share/qt6/translations/qtbase_zh_CN.qm', dest / 'translations/qtbase_zh_CN.qm')
+shutil.copy2(ROOT / 'build-aligned/qtbase_zh_CN.qm', dest / 'translations/qtbase_zh_CN.qm')
 (dest / 'qt.conf').write_text('[Paths]\nTranslations=translations\n', encoding='utf-8')
 sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
 submodules = subprocess.check_output(['git', 'submodule', 'status'], text=True)
@@ -91,6 +91,7 @@ submodules = subprocess.check_output(['git', 'submodule', 'status'], text=True)
     'Upstream archive SHA256: ' + EXPECTED + '\n'
     'FFmpeg SDK/build recipes: https://github.com/streetpea/FFmpeg-Builds/tree/867f543\n'
     'libplacebo SDK source: https://github.com/haasn/libplacebo/tree/275f7dea27924cdd34ab2e6c20e448b6bc4fab65\n'
+    'Qt Chinese catalog source: https://github.com/qt/qttranslations/tree/v6.12.0\n'
     'Runtime DLLs and QML resources are copied byte-for-byte from upstream.\n'
     'sdk-packages.txt lists BUILD SDK packages, not proof of runtime package provenance.\n'
     'The SDK license copies supplement, but do not replace, applicable upstream runtime notices.\n'

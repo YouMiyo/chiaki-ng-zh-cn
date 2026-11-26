@@ -22,7 +22,7 @@ jobs:
           install: git diffutils make unzip zip
           pacboy: >-
             cc:p cmake:p ninja:p pkgconf:p python:p python-pip:p
-            qt6-base:p qt6-declarative:p qt6-svg:p qt6-tools:p qt6-translations:p
+            qt6-base:p qt6-declarative:p qt6-svg:p qt6-tools:p
             curl:p openssl:p opus:p speexdsp:p json-c:p miniupnpc:p protobuf:p libevent:p
             ca-certificates:p fast_float:p fftw:p lcms2:p libdovi:p meson:p nasm:p
             python-psutil:p python-glad:p python-jinja:p shaderc:p spirv-cross:p
@@ -54,6 +54,9 @@ jobs:
           python scripts/check-zh-translations.py
           cmake -S . -B build-aligned -G Ninja -DCMAKE_BUILD_TYPE=Release -DCHIAKI_ENABLE_CLI=OFF -DCHIAKI_ENABLE_TESTS=OFF -DCHIAKI_ENABLE_STEAMDECK_NATIVE=OFF
           cmake --build build-aligned --target chiaki --parallel 2
+          curl --fail --location --retry 3 -o build-aligned/qtbase_zh_CN.ts https://raw.githubusercontent.com/qt/qttranslations/v6.12.0/translations/qtbase_zh_CN.ts
+          echo 'e63a70eedd900438ec1c63877c525bcda5c8292803bf0e228995de09fb9ddeb7  build-aligned/qtbase_zh_CN.ts' | sha256sum -c -
+          /mingw64/bin/lrelease.exe build-aligned/qtbase_zh_CN.ts -qm build-aligned/qtbase_zh_CN.qm
           pacman -Q > build-aligned/sdk-packages.txt
       - name: Reuse and verify original official runtime files
         run: python scripts/package-official-runtime.py
