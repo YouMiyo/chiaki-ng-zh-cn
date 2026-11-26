@@ -48,6 +48,10 @@ jobs:
           echo '389d1af21e99223d9e2cd32d4c073131b276da85be7636bd8d23571f6938864f  openssl3-sdk.tar.zst' | sha256sum -c -
           mkdir openssl3-sdk
           tar -xf openssl3-sdk.tar.zst -C openssl3-sdk
+          curl --fail --location --retry 3 -o zlib-sdk.tar.zst https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-zlib-1.3.2-3-any.pkg.tar.zst
+          echo 'ffde6f4ed2d879477c93b37ff14c319baf480a2aeafc065edeceafba26b71e90  zlib-sdk.tar.zst' | sha256sum -c -
+          mkdir zlib-sdk
+          tar -xf zlib-sdk.tar.zst -C zlib-sdk
       - name: Build pinned controller dependencies
         env:
           CMAKE_BUILD_PARALLEL_LEVEL: 2
@@ -61,7 +65,7 @@ jobs:
           test "$(pkg-config --modversion libplacebo)" = '7.387.0'
           test "$(pkg-config --modversion libavcodec)" = '63.1.102'
           python scripts/check-zh-translations.py
-          cmake -S . -B build-aligned -G Ninja -DCMAKE_BUILD_TYPE=Release -DCHIAKI_ENABLE_CLI=OFF -DCHIAKI_ENABLE_TESTS=OFF -DCHIAKI_ENABLE_STEAMDECK_NATIVE=OFF -DOPENSSL_ROOT_DIR="$PWD/openssl3-sdk/mingw64" -DOPENSSL_INCLUDE_DIR="$PWD/openssl3-sdk/mingw64/include" -DOPENSSL_CRYPTO_LIBRARY="$PWD/openssl3-sdk/mingw64/lib/libcrypto.dll.a" -DOPENSSL_SSL_LIBRARY="$PWD/openssl3-sdk/mingw64/lib/libssl.dll.a"
+          cmake -S . -B build-aligned -G Ninja -DCMAKE_BUILD_TYPE=Release -DCHIAKI_ENABLE_CLI=OFF -DCHIAKI_ENABLE_TESTS=OFF -DCHIAKI_ENABLE_STEAMDECK_NATIVE=OFF -DOPENSSL_ROOT_DIR="$PWD/openssl3-sdk/mingw64" -DOPENSSL_INCLUDE_DIR="$PWD/openssl3-sdk/mingw64/include" -DOPENSSL_CRYPTO_LIBRARY="$PWD/openssl3-sdk/mingw64/lib/libcrypto.dll.a" -DOPENSSL_SSL_LIBRARY="$PWD/openssl3-sdk/mingw64/lib/libssl.dll.a" -DZLIB_INCLUDE_DIR="$PWD/zlib-sdk/mingw64/include" -DZLIB_LIBRARY="$PWD/zlib-sdk/mingw64/lib/libz.dll.a" -DZLIB_LIBRARY_RELEASE="$PWD/zlib-sdk/mingw64/lib/libz.dll.a"
           cmake --build build-aligned --target chiaki --parallel 2
           curl --fail --location --retry 3 -o build-aligned/qtbase_zh_CN.ts https://raw.githubusercontent.com/qt/qttranslations/v6.12.0/translations/qtbase_zh_CN.ts
           echo 'e63a70eedd900438ec1c63877c525bcda5c8292803bf0e228995de09fb9ddeb7  build-aligned/qtbase_zh_CN.ts' | sha256sum -c -

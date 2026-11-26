@@ -47,8 +47,10 @@ shutil.copy2(ROOT / 'build-aligned/gui/chiaki.exe', dest / 'chiaki.exe')
 # Check imported symbols against the original DLL exports. Windows system DLLs
 # are resolved by the runner; imported non-system DLLs must be in the ZIP.
 system32 = Path(os.environ['WINDIR']) / 'System32'
-imports = pefile.PE(str(dest / 'chiaki.exe'))
+imports = pefile.PE(str(dest / 'chiaki.exe'), fast_load=True)
+imports.parse_data_directories(directories=[pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_IMPORT']])
 checked = []
+problems = []
 print('Executable imports:', ', '.join(d.dll.decode('ascii') for d in imports.DIRECTORY_ENTRY_IMPORT))
 for desc in imports.DIRECTORY_ENTRY_IMPORT:
     name = desc.dll.decode('ascii')
@@ -56,17 +58,24 @@ for desc in imports.DIRECTORY_ENTRY_IMPORT:
     if not dll.exists():
         if name.lower().startswith(('api-ms-win-', 'ext-ms-win-')) or (system32 / name).exists():
             continue
-        raise SystemExit('Missing runtime dependency: ' + name)
-    lib = pefile.PE(str(dll))
+        problems.append('Missing runtime dependency: ' + name)
+        continue
+    # Qt legitimately exports more than pefile's default 8192-symbol limit.
+    lib = pefile.PE(str(dll), fast_load=True, max_symbol_exports=1000000)
+    lib.parse_data_directories(directories=[pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_EXPORT']])
     symbols = lib.DIRECTORY_ENTRY_EXPORT.symbols
+    if sum(s.name is not None for s in symbols) != lib.DIRECTORY_ENTRY_EXPORT.struct.NumberOfNames:
+        raise SystemExit('Incomplete DLL export parsing: ' + name)
     names = {s.name for s in symbols}
     ordinals = {s.ordinal for s in symbols}
     for symbol in desc.imports:
         if (symbol.name is not None and symbol.name not in names) or (symbol.name is None and symbol.ordinal not in ordinals):
-            raise SystemExit('Imported symbol missing in official DLL: ' + name + ' ' + str(symbol.name or symbol.ordinal))
+            problems.append('Imported symbol missing in official DLL: ' + name + ' ' + str(symbol.name or symbol.ordinal))
     checked.append(name)
     lib.close()
 imports.close()
+if problems:
+    raise SystemExit('\n'.join(problems))
 
 for rel, expected in official.items():
     if rel == 'chiaki-ng-Win/chiaki.exe':
