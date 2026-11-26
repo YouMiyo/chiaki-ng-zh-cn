@@ -39,6 +39,10 @@ jobs:
           cp -a ffmpeg-n9.0-latest-win64-gpl-shared-9.0/lib/. /mingw64/lib
           curl --fail --location --retry 3 -o official-runtime.zip https://github.com/chiaki-ng/chiaki-ng/releases/download/v1.10.1/chiaki-ng-win_x64-MSYS2-portable-1.10.1.zip
           echo '6ca3f5e6780608104d79345ab7755cfa77fefc33a41ae10651a874c43f54ea57  official-runtime.zip' | sha256sum -c -
+          curl --fail --location --retry 3 -o qtbase-sdk.pkg.tar.zst https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-qt6-base-6.12.0-1-any.pkg.tar.zst
+          echo '4219d4c35cac15a7109e36897b201b5e45fda6fc619458116f0e0f08f48305e7  qtbase-sdk.pkg.tar.zst' | sha256sum -c -
+          pacman -U --noconfirm qtbase-sdk.pkg.tar.zst
+          python scripts/check-official-qt-sdk.py
           # Keep SDK tools on their own OpenSSL; isolate the app's upstream ABI.
           curl --fail --location --retry 3 -o openssl3-sdk.tar.zst https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-openssl-3.6.5-1-any.pkg.tar.zst
           echo '389d1af21e99223d9e2cd32d4c073131b276da85be7636bd8d23571f6938864f  openssl3-sdk.tar.zst' | sha256sum -c -
@@ -79,3 +83,13 @@ jobs:
             SHA256SUMS.txt
           retention-days: 14
           if-no-files-found: error
+      - name: Preserve executable for failed build diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostics-not-a-portable-package
+          path: |
+            build-aligned/gui/chiaki.exe
+            build-aligned/sdk-packages.txt
+          if-no-files-found: ignore
+          retention-days: 3

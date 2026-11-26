@@ -43,6 +43,7 @@ chiaki.conf
 /official-runtime.zip
 /openssl3-sdk/
 /openssl3-sdk.tar.zst
+/qtbase-sdk.pkg.tar.zst
 __pycache__/
 /artifacts/
 *.qm
